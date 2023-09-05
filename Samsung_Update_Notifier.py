@@ -1,6 +1,22 @@
 import requests
 from bs4 import BeautifulSoup
 import datetime
+from pushbullet import PushBullet
+
+def send_notification(token, title, text):
+    # Get the instance using the access token
+
+    pb = PushBullet(token)
+
+    # Send the data by passing the main title
+
+    # and text to be send
+
+    devices = pb.devices
+
+    result = devices[1].push_note(title, text)
+
+    return result
 
 def trunc_datetime(someDate):
     return someDate.replace(day=1)
@@ -44,7 +60,7 @@ def check_website_for_update(link):
                 datetime_object = datetime.datetime.strptime(date_array[1], '%Y-%m-%d').date()
                 b = trunc_datetime(datetime_object)
                 if a == b:
-                    print("New release!")
+                    return "New release!"
 
 def get_link_to_check(link):
     page = requests.get(link)
@@ -77,14 +93,19 @@ if __name__ == '__main__':
 
     url_start = "https://doc.samsungmobile.com/"
 
+    f = open("token", "r")
+    access_token = f.read()
+
     for i in range(len(csc_codes)):
-        print(country_name[i])
-        
+
         URL = url_start + device_code + "/" + csc_codes[i] + "/doc.html" #"https://doc.samsungmobile.com/SM-R890/TPH/doc.html"
 
         link = get_link_to_check(URL)
 
-        check_website_for_update(url_start + link)
+        title = check_website_for_update(url_start + link)
+
+        if title is not None:
+            send_notification(access_token, title, country_name[i])
 
 
 
